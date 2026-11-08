@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gym Duel prototype</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;display=swap">
+<style>
+body{margin:0;background:#0B0B0C}
+a{color:#F4F4F2}a:hover{color:#FFFFFF}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:active{transform:scale(0.97)}
+input{font-family:inherit}
+input:focus{outline:2px solid #F4F4F2;outline-offset:1px}
+.gd-scroll{scrollbar-width:none}
+.gd-scroll::-webkit-scrollbar{display:none}
+@keyframes gdPop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes gdRise{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes gdDrop{from{transform:translateY(-120%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes gdRing{0%{transform:scale(.2);opacity:1}100%{transform:scale(2.8);opacity:0}}
+@keyframes gdRipple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.2);opacity:0}}
+@keyframes gdRay{0%{transform:translateY(70px) scaleY(.2);opacity:0}25%{opacity:1}100%{transform:translateY(-30px) scaleY(1);opacity:0}}
+@keyframes gdShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-10px)}30%{transform:translateX(9px)}45%{transform:translateX(-7px)}60%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+@keyframes gdPulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes gdSheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes gdFade{from{opacity:0}to{opacity:1}}
+.gd-pop{animation:gdPop .55s cubic-bezier(.2,1.4,.4,1) both}
+.gd-pop2{animation:gdPop .55s cubic-bezier(.2,1.4,.4,1) .7s both}
+.gd-rise{animation:gdRise .45s ease-out both}
+.gd-rise2{animation:gdRise .45s ease-out .25s both}
+.gd-rise3{animation:gdRise .45s ease-out .45s both}
+.gd-drop{animation:gdDrop .4s cubic-bezier(.2,1.2,.4,1) both}
+.gd-ring{animation:gdRing 1.1s ease-out both}
+.gd-ring2{animation:gdRing 1.1s ease-out .2s both}
+.gd-ripple{animation:gdRipple 1.8s ease-out infinite}
+.gd-ripple2{animation:gdRipple 1.8s ease-out .9s infinite}
+.gd-ray{animation:gdRay .9s ease-out .1s both}
+.gd-shake{animation:gdShake .6s ease-in-out .15s both}
+.gd-pulse{animation:gdPulse 1.2s ease-in-out infinite}
+.gd-sheet{animation:gdSheet .32s cubic-bezier(.2,.9,.3,1) both}
+.gd-fade{animation:gdFade .25s ease-out both}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0B0B0C; color: #F4F4F2; font-family: 'Archivo', system-ui, sans-serif; font-variant-numeric: tabular-nums">
+
+<!-- ============ ONBOARDING 1: PICK EXERCISE ============ -->
+<sc-if value="{{is.ob1}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade" style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 16px 20px 24px; box-sizing: border-box">
+  <div style="display: flex; align-items: center; justify-content: space-between; height: 52px">
+    <sc-if value="{{authed}}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{goHome}}" aria-label="Close" style="width: 48px; height: 48px; margin-left: -12px; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </sc-if>
+    <sc-if value="{{notAuthed}}" hint-placeholder-val="{{ true }}">
+      <div style="font-size: 20px; font-weight: 900; font-stretch: 125%; letter-spacing: -0.5px">GYM<span style="color: #6E7177">/</span>DUEL</div>
+    </sc-if>
+    <div style="font-size: 15px; font-weight: 700; color: #9A9DA3">1 / 3</div>
+  </div>
+  <div style="display: flex; gap: 6px; margin-top: 4px">
+    <div style="flex: 1; height: 4px; border-radius: 2px; background: #F4F4F2"></div>
+    <div style="flex: 1; height: 4px; border-radius: 2px; background: #2C2F34"></div>
+    <div style="flex: 1; height: 4px; border-radius: 2px; background: #2C2F34"></div>
+  </div>
+  <h1 style="margin: 28px 0 6px; font-size: 40px; line-height: 1; font-weight: 900; font-stretch: 115%; letter-spacing: -1px">Pick your<br>weapon.</h1>
+  <p style="margin: 0 0 20px; font-size: 16px; color: #9A9DA3">You set the score. They try to beat it.</p>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <sc-for list="{{tiles}}" as="t" hint-placeholder-count="6">
+      <button onClick="{{t.pick}}" aria-pressed="{{t.sel}}" style="position: relative; height: 112px; border-radius: 20px; border: 2px solid {{t.border}}; background: {{t.bg}}; color: #F4F4F2; text-align: left; padding: 14px 14px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box">
+        <span style="font-size: 12px; font-weight: 800; letter-spacing: 1.2px; color: #9A9DA3">{{t.tag}}</span>
+        <span style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 20px; font-weight: 800; font-stretch: 110%">{{t.name}}</span>
+          <span style="font-size: 13px; color: #9A9DA3">{{t.rule}}</span>
+        </span>
+        <sc-if value="{{t.sel}}" hint-placeholder-val="{{ false }}">
+          <span class="gd-pop" style="position: absolute; top: 12px; right: 12px; width: 26px; height: 26px; border-radius: 13px; background: #F4F4F2; color: #0B0B0C; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
+        </sc-if>
+      </button>
+    </sc-for>
+  </div>
+  <div style="flex: 1"></div>
+  <sc-if value="{{exPicked}}" hint-placeholder-val="{{ true }}">
+    <button onClick="{{toOb2}}" style="height: 68px; border: none; border-radius: 22px; background: {{accent}}; color: #0B0B0C; font-size: 20px; font-weight: 900; font-stretch: 115%; letter-spacing: 0.5px">LOG MY SET</button>
+  </sc-if>
+  <sc-if value="{{exNotPicked}}" hint-placeholder-val="{{ false }}">
+    <button disabled style="height: 68px; border: none; border-radius: 22px; background: #1C1D21; color: #8A8D93; font-size: 20px; font-weight: 900; font-stretch: 115%; letter-spacing: 0.5px">PICK ONE</button>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ ONBOARDING 2: LOG YOUR SET ============ -->
+<sc-if value="{{is.ob2}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade" style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 16px 20px 24px; box-sizing: border-box">
+  <div style="display: flex; align-items: center; justify-content: space-between; height: 52px">
+    <button onClick="{{toOb1}}" aria-label="Back" style="width: 48px; height: 48px; margin-left: -12px; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div style="font-size: 15px; font-weight: 700; color: #9A9DA3">2 / 3</div>
+  </div>
+  <div style="display: flex; gap: 6px; margin-top: 4px">
+    <div style="flex: 1; height: 4px; border-radius: 2px; background: #F4F4F2"></div>
+    <div style="flex: 1; height: 4px; border-radius: 2px; background: #F4F4F2"></div>
+    <div style="flex: 1; height: 4px; border-radius: 2px; background: #2C2F34"></div>
+  </div>
+  <h1 style="margin: 28px 0 6px; font-size: 40px; line-height: 1; font-weight: 900; font-stretch: 115%; letter-spacing: -1px">Log your set.</h1>
+  <p style="margin: 0; font-size: 16px; color: #9A9DA3">{{ex.name}} · {{ex.rule}}</p>
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+    <div style="font-size: 148px; line-height: 0.9; font-weight: 900; font-stretch: 112%; letter-spacing: -6px">{{ob2Num}}</div>
+    <div style="font-size: 18px; font-weight: 800; letter-spacing: 3px; color: #9A9DA3">{{ob2Unit}}</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <button onClick="{{dec1}}" aria-label="Decrease" style="height: 80px; border-radius: 22px; border: none; background: #1C1D21; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+    <button onClick="{{inc1}}" aria-label="Increase" style="height: 80px; border-radius: 22px; border: none; background: #1C1D21; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button onClick="{{decBig}}" style="height: 52px; border-radius: 16px; border: 1px solid #2C2F34; background: transparent; color: #9A9DA3; font-size: 17px; font-weight: 800">−{{bigStep}}</button>
+    <button onClick="{{incBig}}" style="height: 52px; border-radius: 16px; border: 1px solid #2C2F34; background: transparent; color: #9A9DA3; font-size: 17px; font-weight: 800">+{{bigStep}}</button>
+  </div>
+  <button onClick="{{toOb3}}" style="margin-top: 16px; height: 68px; border: none; border-radius: 22px; background: {{accent}}; color: #0B0B0C; font-size: 20px; font-weight: 900; font-stretch: 115%; letter-spacing: 0.5px">PREVIEW CHALLENGE</button>
+</div>
+</sc-if>
+
+<!-- ============ ONBOARDING 3: PREVIEW CARD ============ -->
+<sc-if value="{{is.ob3}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade" style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 16px 20px 24px; box-sizing: border-box">
+  <div style="display: flex; align-items: center; justify-content: space-between; height: 52px">
+    <button onClick="{{toOb2}}" aria-label="Back" style="width: 48px; height: 48px; margin-left: -12px; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div style="font-size: 15px; font-weight: 700; color: #9A9DA3">3 / 3</div>
+  </div>
+  <div style="display: flex; gap: 6px; margin-top: 4px">
+    <div style="flex: 1; height: 4px; border-radius: 2px; background: #F4F4F2"></div>
+    <div style="flex: 1; height: 4px; border-radius: 2px; background: #F4F4F2"></div>
+    <div style="flex: 1; height: 4px; border-radius: 2px; background: #F4F4F2"></div>
+  </div>
+  <h1 style="margin: 28px 0 20px; font-size: 40px; line-height: 1; font-weight: 900; font-stretch: 115%; letter-spacing: -1px">This is what<br>they get.</h1>
+  <div class="gd-pop" style="position: relative; border-radius: 28px; overflow: hidden; background: #16171A; border: 1px solid #2C2F34; padding: 22px; display: flex; flex-direction: column; gap: 4px">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: repeating-linear-gradient(-55deg, rgba(255,255,255,0.035) 0 14px, transparent 14px 28px)"></div>
+    <div style="position: relative; display: flex; justify-content: space-between; align-items: center">
+      <div style="font-size: 15px; font-weight: 900; font-stretch: 125%">GYM<span style="color: #6E7177">/</span>DUEL</div>
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: 1.5px; padding: 6px 10px; border-radius: 8px; background: #F4F4F2; color: #0B0B0C">1V1</div>
+    </div>
+    <div style="position: relative; margin-top: 22px; font-size: 15px; font-weight: 800; letter-spacing: 1.2px; color: #9A9DA3">{{card.name}} SAYS YOU CAN'T BEAT</div>
+    <div style="position: relative; font-size: 128px; line-height: 0.9; font-weight: 900; font-stretch: 112%; letter-spacing: -6px">{{card.num}}</div>
+    <div style="position: relative; font-size: 17px; font-weight: 800; letter-spacing: 1.5px">{{card.unit}}</div>
+    <div style="position: relative; margin-top: 18px; padding-top: 16px; border-top: 1px solid #2C2F34; display: flex; justify-content: space-between; align-items: center">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>{{card.left}}</div>
+      <div style="font-size: 13px; font-weight: 800; letter-spacing: 1px; color: #9A9DA3">TO BEAT IT</div>
+    </div>
+  </div>
+  <div style="flex: 1"></div>
+  <button onClick="{{send}}" style="height: 68px; border: none; border-radius: 22px; background: {{accent}}; color: #0B0B0C; font-size: 20px; font-weight: 900; font-stretch: 115%; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 10px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6"/></svg>SEND CHALLENGE</button>
+  <p style="margin: 12px 0 0; text-align: center; font-size: 14px; color: #9A9DA3">Opens WhatsApp. They get 48 hours.</p>
+</div>
+</sc-if>
+
+<!-- ============ CHALLENGE SENT ============ -->
+<sc-if value="{{is.sent}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade" style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 16px 20px 24px; box-sizing: border-box">
+  <div style="display: flex; align-items: center; height: 52px">
+    <button onClick="{{goHome}}" aria-label="Close" style="width: 48px; height: 48px; margin-left: -12px; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div style="display: flex; align-items: center; gap: 14px; margin-top: 8px">
+    <div class="gd-pop" style="width: 56px; height: 56px; border-radius: 28px; background: #F4F4F2; color: #0B0B0C; display: flex; align-items: center; justify-content: center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></div>
+    <h1 class="gd-rise" style="margin: 0; font-size: 40px; line-height: 1; font-weight: 900; font-stretch: 115%; letter-spacing: -1px">Gauntlet<br>thrown.</h1>
+  </div>
+  <div class="gd-rise2" style="margin-top: 28px; position: relative; border-radius: 28px; overflow: hidden; background: #16171A; border: 1px solid #2C2F34; padding: 22px; display: flex; flex-direction: column; gap: 4px">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: repeating-linear-gradient(-55deg, rgba(255,255,255,0.035) 0 14px, transparent 14px 28px)"></div>
+    <div style="position: relative; font-size: 15px; font-weight: 800; letter-spacing: 1.2px; color: #9A9DA3">{{card.name}} SAYS YOU CAN'T BEAT</div>
+    <div style="position: relative; font-size: 96px; line-height: 0.9; font-weight: 900; font-stretch: 112%; letter-spacing: -4px">{{card.num}}</div>
+    <div style="position: relative; font-size: 16px; font-weight: 800; letter-spacing: 1.5px">{{card.unit}}</div>
+    <div style="position: relative; margin-top: 14px; padding-top: 14px; border-top: 1px solid #2C2F34; display: flex; justify-content: space-between; align-items: center">
+      <div style="font-size: 28px; font-weight: 900; font-stretch: 110%">{{card.left}}</div>
+      <div style="font-size: 13px; font-weight: 800; letter-spacing: 1px; color: #9A9DA3">ON THE CLOCK</div>
+    </div>
+  </div>
+  <a href="#" onClick="{{previewAsFriend}}" style="margin-top: 18px; min-height: 44px; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px">See what your friend sees<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  <div style="flex: 1"></div>
+  <button onClick="{{newDuel}}" style="height: 68px; border: none; border-radius: 22px; background: {{accent}}; color: #0B0B0C; font-size: 20px; font-weight: 900; font-stretch: 115%; letter-spacing: 0.5px">CHALLENGE ANOTHER FRIEND</button>
+  <button onClick="{{goHome}}" style="margin-top: 10px; height: 56px; border: 1px solid #2C2F34; border-radius: 20px; background: transparent; color: #F4F4F2; font-size: 17px; font-weight: 800">Go to home</button>
+</div>
+</sc-if>
+
+<!-- ============ ACCEPT CHALLENGE (async or live) ============ -->
+<sc-if value="{{is.accept}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade" style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 16px 20px 24px; box-sizing: border-box">
+  <div style="display: flex; align-items: center; justify-content: space-between; height: 52px">
+    <div style="font-size: 18px; font-weight: 900; font-stretch: 125%">GYM<span style="color: #6E7177">/</span>DUEL</div>
+    <button onClick="{{goHome}}" aria-label="Close" style="width: 48px; height: 48px; margin-right: -12px; border: none; background: transparent; color: #9A9DA3; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="gd-rise" style="display: flex; align-items: center; gap: 12px; margin-top: 20px">
+    <div style="position: relative; width: 52px; height: 52px; border-radius: 26px; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900">{{inc.initial}}
+      <sc-if value="{{inc.live}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); padding: 2px 6px; border-radius: 6px; background: #FF5A4E; color: #0B0B0C; font-size: 10px; font-weight: 900; letter-spacing: 1px">LIVE</span></sc-if>
+    </div>
+    <div style="font-size: 20px; font-weight: 800; line-height: 1.2">{{inc.from}}<br><span style="color: #9A9DA3; font-weight: 600">{{inc.sub}}</span></div>
+  </div>
+  <div style="margin-top: 36px; font-size: 14px; font-weight: 800; letter-spacing: 2px; color: #9A9DA3">SCORE TO BEAT</div>
+  <div class="gd-pop" style="font-size: 168px; line-height: 0.85; font-weight: 900; font-stretch: 112%; letter-spacing: -8px; margin-left: -6px">{{inc.num}}</div>
+  <div style="margin-top: 8px; font-size: 19px; font-weight: 800; letter-spacing: 1.5px">{{inc.unit}}</div>
+  <div style="margin-top: 32px; padding: 18px 20px; border-radius: 22px; background: #16171A; border: {{inc.timerBorder}}; display: flex; justify-content: space-between; align-items: center">
+    <div>
+      <div style="font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">{{inc.timerLabel}}</div>
+      <div style="font-size: 38px; font-weight: 900; font-stretch: 110%; letter-spacing: -1px">{{inc.left}}</div>
+    </div>
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6E7177" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>
+  </div>
+  <p style="margin: 14px 0 0; font-size: 15px; color: #9A9DA3">{{inc.note}}</p>
+  <div style="flex: 1"></div>
+  <button onClick="{{toRecord}}" style="height: 76px; border: none; border-radius: 24px; background: {{accent}}; color: #0B0B0C; font-size: 21px; font-weight: 900; font-stretch: 115%; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 12px"><span style="width: 18px; height: 18px; border-radius: 9px; background: #0B0B0C"></span>{{inc.cta}}</button>
+  <button onClick="{{goHome}}" style="margin-top: 8px; height: 48px; border: none; background: transparent; color: #9A9DA3; font-size: 16px; font-weight: 700">Not now</button>
+</div>
+</sc-if>
+
+<!-- ============ RECORD & SUBMIT ============ -->
+<sc-if value="{{is.record}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade" style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 16px 16px 24px; box-sizing: border-box; background: #050506">
+  <div style="display: flex; align-items: center; justify-content: space-between; height: 52px; padding: 0 4px">
+    <button onClick="{{toAccept}}" aria-label="Cancel" style="width: 48px; height: 48px; margin-left: -12px; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div style="font-size: 16px; font-weight: 800">vs {{inc.from}}</div>
+    <div style="font-size: 14px; font-weight: 800; padding: 8px 12px; border-radius: 12px; background: #1C1D21">{{inc.num}} to beat</div>
+  </div>
+  <sc-if value="{{rv.tapMode}}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{tapRep}}" aria-label="Count a rep" style="flex: 1; margin-top: 8px; position: relative; border-radius: 28px; border: none; background: #121316; color: #F4F4F2; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px">
+      <div style="position: absolute; top: 16px; left: 16px; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800"><span class="gd-pulse" style="width: 12px; height: 12px; border-radius: 6px; background: #FF5A4E"></span>{{rv.time}}</div>
+      <div style="position: absolute; top: 16px; right: 16px; font-size: 13px; font-weight: 800; letter-spacing: 1.2px; color: {{rv.statusColor}}">{{rv.status}}</div>
+      <div style="font-size: 200px; line-height: 0.85; font-weight: 900; font-stretch: 112%; letter-spacing: -8px">{{rv.main}}</div>
+      <div style="font-size: 15px; font-weight: 800; letter-spacing: 3px; color: #9A9DA3">TAP ANYWHERE PER REP</div>
+    </button>
+  </sc-if>
+  <sc-if value="{{rv.viewMode}}" hint-placeholder-val="{{ true }}">
+    <div style="flex: 1; margin-top: 8px; position: relative; border-radius: 28px; background: #121316; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px">
+      <div aria-hidden="true" style="position: absolute; top: 20px; left: 20px; width: 34px; height: 34px; border-top: 3px solid #6E7177; border-left: 3px solid #6E7177; border-top-left-radius: 10px"></div>
+      <div aria-hidden="true" style="position: absolute; top: 20px; right: 20px; width: 34px; height: 34px; border-top: 3px solid #6E7177; border-right: 3px solid #6E7177; border-top-right-radius: 10px"></div>
+      <div aria-hidden="true" style="position: absolute; bottom: 20px; left: 20px; width: 34px; height: 34px; border-bottom: 3px solid #6E7177; border-left: 3px solid #6E7177; border-bottom-left-radius: 10px"></div>
+      <div aria-hidden="true" style="position: absolute; bottom: 20px; right: 20px; width: 34px; height: 34px; border-bottom: 3px solid #6E7177; border-right: 3px solid #6E7177; border-bottom-right-radius: 10px"></div>
+      <sc-if value="{{rv.live}}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; padding: 6px 12px; border-radius: 10px; background: rgba(0,0,0,0.5)"><span class="gd-pulse" style="width: 12px; height: 12px; border-radius: 6px; background: #FF5A4E"></span>REC {{rv.time}}</div>
+      </sc-if>
+      <sc-if value="{{rv.ready}}" hint-placeholder-val="{{ true }}">
+        <svg width="90" height="150" viewBox="0 0 60 100" fill="none" stroke="#3A3D43" stroke-width="2.5" stroke-dasharray="5 5" aria-hidden="true"><circle cx="30" cy="14" r="10"/><path d="M14 34h32l-4 30H18zM20 64l-4 32M40 64l4 32"/></svg>
+        <div style="font-size: 18px; font-weight: 800; text-align: center">Prop your phone.<br><span style="color: #9A9DA3; font-weight: 600">Whole body in frame.</span></div>
+      </sc-if>
+      <sc-if value="{{rv.showBig}}" hint-placeholder-val="{{ false }}">
+        <div style="font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: {{rv.statusColor}}">{{rv.status}}</div>
+        <div style="font-size: 168px; line-height: 0.85; font-weight: 900; font-stretch: 112%; letter-spacing: -7px">{{rv.main}}</div>
+        <div style="font-size: 15px; font-weight: 800; letter-spacing: 3px; color: #9A9DA3">{{inc.unitShort}}</div>
+      </sc-if>
+      <sc-if value="{{rv.review}}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #9A9DA3; white-space: nowrap"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>Clip saved · {{rv.time}}</div>
+      </sc-if>
+    </div>
+  </sc-if>
+  <div style="padding: 14px 4px 0; display: flex; flex-direction: column; gap: 10px">
+    <sc-if value="{{rv.isWeight}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <button onClick="{{wDec}}" aria-label="Less weight" style="width: 64px; height: 64px; border-radius: 20px; border: none; background: #1C1D21; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+        <div style="flex: 1; text-align: center"><div style="font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">WEIGHT LIFTED</div><div style="font-size: 30px; font-weight: 900; font-stretch: 110%">{{rv.weight}} kg</div></div>
+        <button onClick="{{wInc}}" aria-label="More weight" style="width: 64px; height: 64px; border-radius: 20px; border: none; background: #1C1D21; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </sc-if>
+    <sc-if value="{{rv.ready}}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{recStart}}" style="height: 76px; border: none; border-radius: 24px; background: {{accent}}; color: #0B0B0C; font-size: 21px; font-weight: 900; font-stretch: 115%; display: flex; align-items: center; justify-content: center; gap: 12px"><span style="width: 18px; height: 18px; border-radius: 9px; background: #0B0B0C"></span>START RECORDING</button>
+    </sc-if>
+    <sc-if value="{{rv.live}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; gap: 10px">
+        <sc-if value="{{rv.isCount}}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{untapRep}}" aria-label="Remove a rep" style="width: 76px; height: 76px; border-radius: 24px; border: 1px solid #2C2F34; background: transparent; color: #F4F4F2; font-size: 20px; font-weight: 800">−1</button>
+        </sc-if>
+        <button onClick="{{recStop}}" style="flex: 1; height: 76px; border: none; border-radius: 24px; background: {{accent}}; color: #0B0B0C; font-size: 21px; font-weight: 900; font-stretch: 115%; display: flex; align-items: center; justify-content: center; gap: 12px"><span style="width: 18px; height: 18px; border-radius: 4px; background: #0B0B0C"></span>STOP</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{rv.review}}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{submit}}" style="height: 76px; border: none; border-radius: 24px; background: {{accent}}; color: #0B0B0C; font-size: 21px; font-weight: 900; font-stretch: 115%">SUBMIT {{rv.main}}</button>
+      <button onClick="{{retake}}" style="height: 48px; border: none; background: transparent; color: #9A9DA3; font-size: 16px; font-weight: 700">Retake</button>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ RESULT: WIN ============ -->
+<sc-if value="{{is.win}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 16px 20px 24px; box-sizing: border-box; overflow: hidden">
+  <div aria-hidden="true" style="position: absolute; left: 50%; top: 250px; width: 0; height: 0">
+    <div class="gd-ring" style="position: absolute; left: -100px; top: -100px; width: 200px; height: 200px; border-radius: 50%; border: 4px solid #F4F4F2"></div>
+    <div class="gd-ring2" style="position: absolute; left: -100px; top: -100px; width: 200px; height: 200px; border-radius: 50%; border: 2px solid #6E7177"></div>
+    <sc-for list="{{rays}}" as="r" hint-placeholder-count="12">
+      <div style="position: absolute; left: 0; top: 0; width: 0; height: 0; transform: rotate({{r.deg}}deg)">
+        <div class="gd-ray" style="position: absolute; left: -4px; top: -170px; width: 8px; height: 40px; border-radius: 4px; background: {{r.color}}"></div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display: flex; align-items: center; height: 52px; position: relative">
+    <button onClick="{{goHome}}" aria-label="Close" style="width: 48px; height: 48px; margin-left: -12px; border: none; background: transparent; color: #9A9DA3; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div style="position: relative; height: 330px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+    <div class="gd-pop" style="font-size: 104px; line-height: 0.85; font-weight: 900; font-stretch: 125%; letter-spacing: -4px; text-align: center">YOU<br>WON.</div>
+  </div>
+  <div class="gd-rise2" style="position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <div style="padding: 16px; border-radius: 22px; background: #F4F4F2; color: #0B0B0C">
+      <div style="font-size: 13px; font-weight: 800; letter-spacing: 1.5px">YOU</div>
+      <div style="font-size: 56px; line-height: 1; font-weight: 900; font-stretch: 112%; letter-spacing: -2px">{{res.myNum}}</div>
+    </div>
+    <div style="padding: 16px; border-radius: 22px; background: #16171A; border: 1px solid #2C2F34">
+      <div style="font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">{{res.fromUpper}}</div>
+      <div style="font-size: 56px; line-height: 1; font-weight: 900; font-stretch: 112%; letter-spacing: -2px; color: #6E7177; text-decoration: line-through; text-decoration-thickness: 4px">{{res.theirNum}}</div>
+    </div>
+  </div>
+  <div style="position: relative; display: flex; gap: 10px; margin-top: 12px">
+    <div class="gd-pop2" style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-radius: 18px; background: #16171A; border: 1px solid #2C2F34">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4F4F2" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.7 2.3-4.8.2 1.6 1 2.8 2.2 3.3C11 9 11.2 6 12 3z"/></svg>
+      <div style="font-size: 16px; font-weight: 800">{{res.streakLine}}</div>
+    </div>
+    <div class="gd-pop2" style="display: flex; align-items: center; padding: 14px 16px; border-radius: 18px; background: #16171A; border: 1px solid #2C2F34; font-size: 16px; font-weight: 800">+24 LP</div>
+  </div>
+  <div style="flex: 1"></div>
+  <button onClick="{{challengeOther}}" style="position: relative; height: 72px; border: none; border-radius: 24px; background: {{accent}}; color: #0B0B0C; font-size: 20px; font-weight: 900; font-stretch: 115%">CHALLENGE SOMEONE ELSE</button>
+  <button onClick="{{rematch}}" style="position: relative; margin-top: 10px; height: 56px; border: 1px solid #2C2F34; border-radius: 20px; background: transparent; color: #F4F4F2; font-size: 17px; font-weight: 800">Rematch {{res.from}}</button>
+</div>
+</sc-if>
+
+<!-- ============ RESULT: LOSS ============ -->
+<sc-if value="{{is.loss}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 16px 20px 24px; box-sizing: border-box">
+  <div style="display: flex; align-items: center; height: 52px">
+    <button onClick="{{goHome}}" aria-label="Close" style="width: 48px; height: 48px; margin-left: -12px; border: none; background: transparent; color: #9A9DA3; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div style="height: 330px; display: flex; flex-direction: column; justify-content: center">
+    <div class="gd-shake" style="font-size: 104px; line-height: 0.85; font-weight: 900; font-stretch: 125%; letter-spacing: -4px">NOT<br><span style="color: #FF5A4E">YET.</span></div>
+    <div class="gd-rise3" style="margin-top: 18px; font-size: 22px; font-weight: 800">{{res.gapLine}}</div>
+  </div>
+  <div class="gd-rise2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <div style="padding: 16px; border-radius: 22px; background: #16171A; border: 1px solid #2C2F34">
+      <div style="font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">YOU</div>
+      <div style="font-size: 56px; line-height: 1; font-weight: 900; font-stretch: 112%; letter-spacing: -2px">{{res.myNum}}</div>
+    </div>
+    <div style="padding: 16px; border-radius: 22px; background: #16171A; border: 2px solid #FF5A4E">
+      <div style="font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #FF5A4E">{{res.fromUpper}}</div>
+      <div style="font-size: 56px; line-height: 1; font-weight: 900; font-stretch: 112%; letter-spacing: -2px">{{res.theirNum}}</div>
+    </div>
+  </div>
+  <div style="margin-top: 12px; padding: 14px 16px; border-radius: 18px; background: #16171A; border: 1px solid #2C2F34; font-size: 16px; font-weight: 700; color: #9A9DA3">Win the rematch and you take the points back.</div>
+  <div style="flex: 1"></div>
+  <button onClick="{{rematch}}" style="height: 72px; border: none; border-radius: 24px; background: {{accent}}; color: #0B0B0C; font-size: 22px; font-weight: 900; font-stretch: 115%">REMATCH</button>
+  <button onClick="{{challengeOther}}" style="margin-top: 10px; height: 56px; border: 1px solid #2C2F34; border-radius: 20px; background: transparent; color: #F4F4F2; font-size: 17px; font-weight: 800">Challenge someone else</button>
+</div>
+</sc-if>
+
+<!-- ============ HOME (stories row + duel posts) ============ -->
+<sc-if value="{{is.home}}" hint-placeholder-val="{{ true }}">
+<div class="gd-fade gd-scroll" style="position: absolute; top: 0; left: 0; right: 0; bottom: 72px; overflow-y: auto; padding: 12px 0 20px; box-sizing: border-box">
+  <div style="display: flex; align-items: center; justify-content: space-between; height: 52px; padding: 0 16px 0 20px">
+    <div style="font-size: 24px; font-weight: 900; font-stretch: 125%; letter-spacing: -0.5px">GYM<span style="color: #6E7177">/</span>DUEL</div>
+    <button onClick="{{openLiveReq}}" aria-label="Live challenge requests" style="position: relative; width: 48px; height: 48px; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
+      <sc-if value="{{reqBadge}}" hint-placeholder-val="{{ false }}"><span class="gd-pop" style="position: absolute; top: 6px; right: 6px; min-width: 18px; height: 18px; border-radius: 9px; background: #FF5A4E; color: #0B0B0C; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center">1</span></sc-if>
+    </button>
+  </div>
+
+  <!-- stories: who is in the gym right now -->
+  <div class="gd-scroll" style="display: flex; gap: 14px; overflow-x: auto; padding: 8px 20px 4px">
+    <button onClick="{{toggleLive}}" style="flex-shrink: 0; width: 72px; border: none; background: transparent; color: #F4F4F2; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 6px">
+      <span style="position: relative; width: 68px; height: 68px; border-radius: 34px; border: {{meRing}}; box-sizing: border-box; padding: 3px; display: flex">
+        <span style="flex: 1; border-radius: 50%; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900">{{me.initial}}</span>
+        <sc-if value="{{notLive}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; right: -2px; bottom: -2px; width: 24px; height: 24px; border-radius: 12px; background: #F4F4F2; color: #0B0B0C; border: 3px solid #0B0B0C; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></sc-if>
+        <sc-if value="{{live}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); padding: 2px 6px; border-radius: 6px; background: #FF5A4E; color: #0B0B0C; font-size: 10px; font-weight: 900; letter-spacing: 1px; border: 2px solid #0B0B0C">LIVE</span></sc-if>
+      </span>
+      <span style="font-size: 12px; font-weight: 700; color: #C9CBCF">{{meStoryLabel}}</span>
+    </button>
+    <sc-for list="{{stories}}" as="st" hint-placeholder-count="5">
+      <button onClick="{{st.open}}" style="flex-shrink: 0; width: 72px; border: none; background: transparent; color: #F4F4F2; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <span style="position: relative; width: 68px; height: 68px; border-radius: 34px; border: {{st.ring}}; box-sizing: border-box; padding: 3px; display: flex">
+          <span style="flex: 1; border-radius: 50%; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; color: {{st.ink}}">{{st.initial}}</span>
+          <sc-if value="{{st.live}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); padding: 2px 6px; border-radius: 6px; background: #FF5A4E; color: #0B0B0C; font-size: 10px; font-weight: 900; letter-spacing: 1px; border: 2px solid #0B0B0C">LIVE</span></sc-if>
+        </span>
+        <span style="font-size: 12px; font-weight: 700; color: {{st.labelInk}}">{{st.name}}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="padding: 0 16px">
+    <!-- compact streak -->
+    <sc-if value="{{atRisk}}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top: 14px; padding: 12px 14px; border-radius: 18px; background: #1A1112; border: 2px solid #FF5A4E; display: flex; align-items: center; gap: 10px">
+        <svg class="gd-pulse" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF5A4E" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.7 2.3-4.8.2 1.6 1 2.8 2.2 3.3C11 9 11.2 6 12 3z"/></svg>
+        <div style="font-size: 30px; line-height: 1; font-weight: 900; font-stretch: 112%">6</div>
+        <div style="flex: 1; font-size: 14px; font-weight: 800; color: #FF7A70; line-height: 1.25">Week streak breaks in {{streakLeft}}</div>
+        <div style="display: flex; gap: 4px; align-items: flex-end">
+          <sc-for list="{{weeks}}" as="w" hint-placeholder-count="6"><div style="width: 6px; height: 22px; border-radius: 3px; background: #F4F4F2"></div></sc-for>
+          <div class="gd-pulse" style="width: 6px; height: 22px; border-radius: 3px; border: 2px dashed #FF5A4E; box-sizing: border-box"></div>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{safe}}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top: 14px; padding: 12px 14px; border-radius: 18px; background: #16171A; border: 1px solid #2C2F34; display: flex; align-items: center; gap: 10px">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="#F4F4F2" stroke="#F4F4F2" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.7 2.3-4.8.2 1.6 1 2.8 2.2 3.3C11 9 11.2 6 12 3z"/></svg>
+        <div style="font-size: 30px; line-height: 1; font-weight: 900; font-stretch: 112%">{{streakSafeNum}}</div>
+        <div style="flex: 1; font-size: 14px; font-weight: 700; color: #9A9DA3">Week streak · this week locked</div>
+        <div style="display: flex; gap: 4px; align-items: flex-end">
+          <sc-for list="{{weeks}}" as="w" hint-placeholder-count="6"><div style="width: 6px; height: 22px; border-radius: 3px; background: #F4F4F2"></div></sc-for>
+          <div class="gd-pop" style="width: 6px; height: 22px; border-radius: 3px; background: #F4F4F2"></div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- the one action -->
+    <button onClick="{{newDuel}}" style="margin-top: 12px; width: 100%; height: 112px; border: none; border-radius: 28px; background: {{accent}}; color: #0B0B0C; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-sizing: border-box; text-align: left">
+      <span style="font-size: 38px; line-height: 0.95; font-weight: 900; font-stretch: 125%; letter-spacing: -1px">START<br>A DUEL</span>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l10 10M20 4L10 14M6 16l-2 4M18 16l2 4M3 13l8 8M21 13l-8 8"/></svg>
+    </button>
+
+    <!-- your move: duel posts -->
+    <div style="margin-top: 22px; display: flex; justify-content: space-between; align-items: baseline">
+      <div style="font-size: 14px; font-weight: 800; letter-spacing: 1.5px">YOUR MOVE</div>
+      <div style="font-size: 14px; font-weight: 700; color: #9A9DA3">{{yourMoveCount}} waiting</div>
+    </div>
+    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 14px">
+      <sc-for list="{{yourMove}}" as="d" hint-placeholder-count="3">
+        <article style="border-radius: 24px; background: #16171A; border: 1px solid #2C2F34; overflow: hidden">
+          <div style="height: 60px; display: flex; align-items: center; gap: 10px; padding: 0 14px">
+            <span style="width: 38px; height: 38px; border-radius: 19px; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900">{{d.initial}}</span>
+            <span style="flex: 1; display: flex; flex-direction: column">
+              <span style="font-size: 16px; font-weight: 800">{{d.from}}</span>
+              <span style="font-size: 13px; color: #9A9DA3">{{d.ex}}</span>
+            </span>
+            <span style="display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 800; color: {{d.leftColor}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>{{d.left}}</span>
+          </div>
+          <div style="position: relative; height: 176px; background: #0F1012; display: flex; flex-direction: column; align-items: center; justify-content: center">
+            <div aria-hidden="true" style="position: absolute; inset: 0; background: repeating-linear-gradient(-55deg, rgba(255,255,255,0.03) 0 14px, transparent 14px 28px)"></div>
+            <div style="position: relative; font-size: 12px; font-weight: 800; letter-spacing: 2px; color: #9A9DA3">SCORE TO BEAT</div>
+            <div style="position: relative; font-size: 104px; line-height: 0.9; font-weight: 900; font-stretch: 112%; letter-spacing: -4px">{{d.num}}</div>
+            <div style="position: relative; font-size: 13px; font-weight: 800; letter-spacing: 1.5px">{{d.unit}}</div>
+          </div>
+          <div style="padding: 12px 14px 14px; display: flex; align-items: center; gap: 10px">
+            <button onClick="{{d.open}}" style="flex: 1; height: 50px; border-radius: 16px; border: none; background: #F4F4F2; color: #0B0B0C; font-size: 17px; font-weight: 900; font-stretch: 112%">BEAT IT</button>
+            <span style="font-size: 13px; color: #9A9DA3; white-space: nowrap">{{d.side}}</span>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+
+    <div style="margin-top: 22px; display: flex; justify-content: space-between; align-items: baseline">
+      <div style="font-size: 14px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">THEIR MOVE</div>
+      <div style="font-size: 14px; font-weight: 700; color: #9A9DA3">{{theirMoveCount}}</div>
+    </div>
+    <div style="margin-top: 6px; display: flex; flex-direction: column">
+      <sc-for list="{{theirMove}}" as="d" hint-placeholder-count="2">
+        <div style="height: 60px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #1E2024">
+          <span style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 18px; border: 1px solid #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #9A9DA3">{{d.initial}}</span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+            <span style="font-size: 16px; font-weight: 700">{{d.to}}</span>
+            <span style="font-size: 13px; color: #9A9DA3">{{d.ex}}</span>
+          </span>
+          <span style="font-size: 14px; font-weight: 700; color: #9A9DA3">{{d.left}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ LIVE: gymmers training right now, worldwide ============ -->
+<sc-if value="{{is.live}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade gd-scroll" style="position: absolute; top: 0; left: 0; right: 0; bottom: 72px; overflow-y: auto; padding: 12px 16px 20px; box-sizing: border-box">
+  <div style="height: 52px; display: flex; align-items: center; justify-content: space-between; padding-left: 4px">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; letter-spacing: 1.5px"><span class="gd-pulse" style="width: 10px; height: 10px; border-radius: 5px; background: #FF5A4E"></span>{{liveCount}} TRAINING NOW</div>
+    <div style="font-size: 14px; font-weight: 700; color: #9A9DA3">{{myLocalTime}}</div>
+  </div>
+  <h1 style="margin: 2px 0 0 4px; font-size: 44px; line-height: 1; font-weight: 900; font-stretch: 125%; letter-spacing: -1.5px">IN THE<br>GYM NOW</h1>
+
+  <!-- your status -->
+  <sc-if value="{{notLive}}" hint-placeholder-val="{{ true }}">
+    <div style="margin-top: 16px; padding: 14px; border-radius: 20px; background: #16171A; border: 1px solid #2C2F34; display: flex; align-items: center; gap: 12px">
+      <div style="flex: 1">
+        <div style="font-size: 16px; font-weight: 800">You're not checked in</div>
+        <div style="margin-top: 2px; font-size: 13px; color: #9A9DA3">Check in so people can send you live duels.</div>
+      </div>
+      <button onClick="{{toggleLive}}" style="height: 48px; padding: 0 16px; border-radius: 14px; border: none; background: #F4F4F2; color: #0B0B0C; font-size: 15px; font-weight: 900">CHECK IN</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{live}}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top: 16px; padding: 14px; border-radius: 20px; background: #16171A; border: 2px solid #F4F4F2; display: flex; align-items: center; gap: 12px">
+      <span class="gd-pulse" style="width: 12px; height: 12px; border-radius: 6px; background: #FF5A4E; flex-shrink: 0"></span>
+      <div style="flex: 1">
+        <div style="font-size: 16px; font-weight: 800">You're live · {{liveFor}}</div>
+        <div style="margin-top: 2px; font-size: 13px; color: #9A9DA3">Iron-level gymmers can challenge you.</div>
+      </div>
+      <button onClick="{{toggleLive}}" style="height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid #2C2F34; background: transparent; color: #F4F4F2; font-size: 14px; font-weight: 800">Check out</button>
+    </div>
+  </sc-if>
+
+  <!-- filters -->
+  <div class="gd-scroll" style="margin: 14px -16px 0; padding: 0 16px; display: flex; gap: 8px; overflow-x: auto">
+    <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+      <button onClick="{{f.pick}}" aria-pressed="{{f.sel}}" style="flex-shrink: 0; height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid {{f.border}}; background: {{f.bg}}; color: {{f.ink}}; font-size: 14px; font-weight: 800">{{f.label}}</button>
+    </sc-for>
+  </div>
+
+  <!-- people grid -->
+  <div style="margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <sc-for list="{{livePeople}}" as="p" hint-placeholder-count="6">
+      <div style="padding: 14px; border-radius: 22px; background: #16171A; border: 1px solid #2C2F34; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start">
+          <span style="width: 54px; height: 54px; border-radius: 27px; border: 2px solid #F4F4F2; box-sizing: border-box; padding: 3px; display: flex"><span style="flex: 1; border-radius: 50%; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900">{{p.initial}}</span></span>
+          <span style="font-size: 12px; font-weight: 800; letter-spacing: 0.5px; color: #9A9DA3; text-align: right; line-height: 1.3">{{p.time}}<br>{{p.minsIn}}m in</span>
+        </div>
+        <div>
+          <div style="font-size: 17px; font-weight: 800">{{p.name}}</div>
+          <div style="font-size: 13px; color: #9A9DA3">{{p.city}}</div>
+          <div style="margin-top: 6px; font-size: 13px; font-weight: 700">{{p.activity}} · {{p.tier}}</div>
+        </div>
+        <button onClick="{{p.open}}" style="height: 44px; border-radius: 14px; border: none; background: #F4F4F2; color: #0B0B0C; font-size: 14px; font-weight: 900; letter-spacing: 0.5px">CHALLENGE</button>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ WAITING ON A LIVE DUEL ============ -->
+<sc-if value="{{is.waiting}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 16px 20px 24px; box-sizing: border-box">
+  <div style="align-self: stretch; display: flex; align-items: center; height: 52px">
+    <button onClick="{{goLive}}" aria-label="Close" style="width: 48px; height: 48px; margin-left: -12px; border: none; background: transparent; color: #9A9DA3; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div style="margin-top: 60px; position: relative; width: 140px; height: 140px">
+    <div class="gd-ripple" aria-hidden="true" style="position: absolute; inset: 0; border-radius: 50%; border: 2px solid #F4F4F2"></div>
+    <div class="gd-ripple2" aria-hidden="true" style="position: absolute; inset: 0; border-radius: 50%; border: 2px solid #6E7177"></div>
+    <div style="position: absolute; inset: 0; border-radius: 50%; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 900">{{target.initial}}</div>
+  </div>
+  <div style="margin-top: 34px; font-size: 14px; font-weight: 800; letter-spacing: 2px; color: #9A9DA3">{{wait.label}}</div>
+  <div class="gd-rise" style="margin-top: 8px; font-size: 34px; line-height: 1.05; font-weight: 900; font-stretch: 115%; text-align: center">{{wait.title}}</div>
+  <div style="margin-top: 8px; font-size: 16px; color: #9A9DA3; text-align: center">{{target.city}} · {{target.time}}</div>
+  <div style="margin-top: 32px; padding: 16px 24px; border-radius: 22px; background: #16171A; border: 1px solid #2C2F34; text-align: center">
+    <div style="font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">YOUR {{liveSend.num}} · {{liveSend.unit}}</div>
+    <div style="font-size: 44px; font-weight: 900; font-stretch: 110%">{{wait.clock}}</div>
+  </div>
+  <div style="flex: 1"></div>
+  <button onClick="{{goLive}}" style="align-self: stretch; height: 56px; border: 1px solid #2C2F34; border-radius: 20px; background: transparent; color: #F4F4F2; font-size: 17px; font-weight: 800">Keep training · we'll ping you</button>
+</div>
+</sc-if>
+
+<!-- ============ GYM HOURS ============ -->
+<sc-if value="{{is.hours}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade gd-scroll" style="position: absolute; inset: 0; overflow-y: auto; display: flex; flex-direction: column; padding: 16px 20px 24px; box-sizing: border-box">
+  <div style="display: flex; align-items: center; height: 52px">
+    <button onClick="{{goProfile}}" aria-label="Back" style="width: 48px; height: 48px; margin-left: -12px; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+  </div>
+  <h1 style="margin: 12px 0 6px; font-size: 40px; line-height: 1; font-weight: 900; font-stretch: 115%; letter-spacing: -1px">When do<br>you train?</h1>
+  <p style="margin: 0; font-size: 16px; color: #9A9DA3">We'll send live duels only in these windows.</p>
+  <div style="margin-top: 24px; font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">DAYS</div>
+  <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
+    <sc-for list="{{days}}" as="dy" hint-placeholder-count="7">
+      <button onClick="{{dy.toggle}}" aria-pressed="{{dy.on}}" aria-label="{{dy.full}}" style="height: 48px; border-radius: 14px; border: 1px solid {{dy.border}}; background: {{dy.bg}}; color: {{dy.ink}}; font-size: 15px; font-weight: 900; padding: 0">{{dy.label}}</button>
+    </sc-for>
+  </div>
+  <div style="margin-top: 22px; font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">USUAL TIME</div>
+  <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+    <sc-for list="{{slots}}" as="sl" hint-placeholder-count="4">
+      <button onClick="{{sl.toggle}}" aria-pressed="{{sl.on}}" style="height: 72px; border-radius: 18px; border: 2px solid {{sl.border}}; background: {{sl.bg}}; color: #F4F4F2; text-align: left; padding: 0 14px; display: flex; flex-direction: column; justify-content: center; gap: 2px">
+        <span style="font-size: 17px; font-weight: 800">{{sl.label}}</span>
+        <span style="font-size: 13px; color: #9A9DA3">{{sl.range}}</span>
+      </button>
+    </sc-for>
+  </div>
+  <div style="margin-top: 22px; display: flex; flex-direction: column; border-top: 1px solid #1E2024">
+    <sc-for list="{{toggles}}" as="tg" hint-placeholder-count="2">
+      <button onClick="{{tg.flip}}" role="switch" aria-checked="{{tg.on}}" style="min-height: 72px; border: none; border-bottom: 1px solid #1E2024; background: transparent; color: #F4F4F2; display: flex; align-items: center; gap: 12px; padding: 10px 0; text-align: left">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 16px; font-weight: 800">{{tg.label}}</span>
+          <span style="font-size: 13px; color: #9A9DA3">{{tg.sub}}</span>
+        </span>
+        <span style="width: 52px; height: 32px; border-radius: 16px; background: {{tg.track}}; display: flex; align-items: center; padding: 3px; box-sizing: border-box; justify-content: {{tg.justify}}"><span style="width: 26px; height: 26px; border-radius: 13px; background: {{tg.knob}}"></span></span>
+      </button>
+    </sc-for>
+  </div>
+  <p style="margin: 14px 0 0; font-size: 13px; color: #9A9DA3">Your local time. People in other time zones see their own.</p>
+  <div style="flex: 1; min-height: 16px"></div>
+  <button onClick="{{saveHours}}" style="height: 68px; flex-shrink: 0; border: none; border-radius: 22px; background: {{accent}}; color: #0B0B0C; font-size: 20px; font-weight: 900; font-stretch: 115%">SAVE GYM HOURS</button>
+</div>
+</sc-if>
+
+<!-- ============ LEAGUE ============ -->
+<sc-if value="{{is.league}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade" style="position: absolute; top: 0; left: 0; right: 0; bottom: 72px; display: flex; flex-direction: column; padding: 16px 20px 0; box-sizing: border-box">
+  <div style="height: 52px; display: flex; align-items: center; justify-content: space-between">
+    <div style="font-size: 14px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">WEEK {{weekNo}}</div>
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 800"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>{{leagueLeft}}</div>
+  </div>
+  <h1 style="margin: 4px 0 0; font-size: 44px; line-height: 1; font-weight: 900; font-stretch: 125%; letter-spacing: -1.5px">IRON<br>LEAGUE</h1>
+  <div style="margin-top: 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+    <div style="height: 30px; border-radius: 8px; border: 1px solid #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #9A9DA3">CHALK</div>
+    <div style="height: 30px; border-radius: 8px; background: #F4F4F2; color: #0B0B0C; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; letter-spacing: 1px">IRON</div>
+    <div style="height: 30px; border-radius: 8px; border: 1px dashed #3A3D43; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #8A8D93">STEEL</div>
+    <div style="height: 30px; border-radius: 8px; border: 1px dashed #3A3D43; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #8A8D93">TITAN</div>
+  </div>
+  <div style="margin-top: 14px; font-size: 18px; font-weight: 800">You're #6. <span style="color: #9A9DA3">12 LP from Steel.</span></div>
+  <div class="gd-scroll" style="flex: 1; overflow-y: auto; margin: 10px -20px 0; padding: 0 20px 16px">
+    <div style="display: flex; align-items: center; gap: 8px; height: 32px; font-size: 12px; font-weight: 900; letter-spacing: 1.5px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>PROMOTION ZONE · TOP 5 MOVE UP
+    </div>
+    <sc-for list="{{board}}" as="p" hint-placeholder-count="20">
+      <sc-if value="{{p.demoteHead}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; align-items: center; gap: 8px; height: 40px; margin-top: 6px; font-size: 12px; font-weight: 900; letter-spacing: 1.5px; color: #FF5A4E; border-top: 2px solid #FF5A4E">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>DEMOTION ZONE · BOTTOM 5 DROP
+        </div>
+      </sc-if>
+      <div style="height: 50px; display: flex; align-items: center; gap: 12px; padding: 0 12px; margin: 0 -12px; border-radius: 14px; background: {{p.bg}}; border: {{p.border}}; box-sizing: border-box">
+        <span style="width: 26px; font-size: 16px; font-weight: 900; color: {{p.rankColor}}">{{p.rank}}</span>
+        <span style="width: 32px; height: 32px; border-radius: 16px; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900">{{p.initial}}</span>
+        <span style="flex: 1; font-size: 16px; font-weight: {{p.weight}}">{{p.name}}</span>
+        <span style="font-size: 16px; font-weight: 900; font-stretch: 110%">{{p.lp}}</span>
+      </div>
+      <sc-if value="{{p.promoteFoot}}" hint-placeholder-val="{{ false }}">
+        <div style="height: 2px; margin: 6px 0; background: #F4F4F2; border-radius: 1px"></div>
+      </sc-if>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ PROFILE (header stats + highlights + clip grid) ============ -->
+<sc-if value="{{is.profile}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade gd-scroll" style="position: absolute; top: 0; left: 0; right: 0; bottom: 72px; overflow-y: auto; padding: 12px 0 24px; box-sizing: border-box">
+  <div style="height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 20px">
+    <div style="font-size: 20px; font-weight: 900">{{me.handle}}</div>
+    <button onClick="{{goHours}}" aria-label="Gym hours" style="width: 48px; height: 48px; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+  <div style="padding: 0 20px">
+    <div style="display: flex; align-items: center; gap: 18px; margin-top: 8px">
+      <span style="position: relative; width: 88px; height: 88px; flex-shrink: 0; border-radius: 44px; border: {{meRing}}; box-sizing: border-box; padding: 4px; display: flex">
+        <span style="flex: 1; border-radius: 50%; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 900">{{me.initial}}</span>
+        <sc-if value="{{live}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); padding: 2px 7px; border-radius: 6px; background: #FF5A4E; color: #0B0B0C; font-size: 11px; font-weight: 900; letter-spacing: 1px; border: 2px solid #0B0B0C">LIVE</span></sc-if>
+      </span>
+      <div style="flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: center">
+        <div><div style="font-size: 26px; font-weight: 900; font-stretch: 110%">50</div><div style="font-size: 12px; font-weight: 700; color: #9A9DA3">duels</div></div>
+        <div><div style="font-size: 26px; font-weight: 900; font-stretch: 110%">68%</div><div style="font-size: 12px; font-weight: 700; color: #9A9DA3">win rate</div></div>
+        <div><div style="font-size: 26px; font-weight: 900; font-stretch: 110%">6</div><div style="font-size: 12px; font-weight: 700; color: #9A9DA3">wk streak</div></div>
+      </div>
+    </div>
+    <div style="margin-top: 14px; font-size: 17px; font-weight: 800">{{me.name}}</div>
+    <div style="margin-top: 2px; font-size: 15px; color: #C9CBCF">Iron League · #6 this week</div>
+    <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span>{{hoursSummary}}</span>
+    </div>
+    <div style="margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <button onClick="{{goHours}}" style="height: 44px; border-radius: 12px; border: none; background: #202226; color: #F4F4F2; font-size: 15px; font-weight: 800">Edit gym hours</button>
+      <button onClick="{{toggleLive}}" style="height: 44px; border-radius: 12px; border: none; background: #202226; color: #F4F4F2; font-size: 15px; font-weight: 800">{{checkLabel}}</button>
+    </div>
+  </div>
+
+  <!-- PR highlights -->
+  <div class="gd-scroll" style="margin-top: 20px; display: flex; gap: 16px; overflow-x: auto; padding: 0 20px">
+    <sc-for list="{{prs}}" as="r" hint-placeholder-count="4">
+      <div style="flex-shrink: 0; width: 70px; display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <span style="width: 66px; height: 66px; border-radius: 33px; border: 1px solid #3A3D43; box-sizing: border-box; padding: 3px; display: flex"><span style="flex: 1; border-radius: 50%; background: #16171A; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 18px; line-height: 1; font-weight: 900; font-stretch: 110%">{{r.num}}</span><span style="font-size: 9px; font-weight: 800; letter-spacing: 1px; color: #9A9DA3">{{r.unit}}</span></span></span>
+        <span style="font-size: 12px; font-weight: 700; color: #C9CBCF; text-align: center">{{r.name}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- grid header -->
+  <div style="margin-top: 18px; height: 44px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid #1E2024">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 800; letter-spacing: 1px; border-bottom: 2px solid #F4F4F2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>DUEL CLIPS</div>
+    <div style="display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; letter-spacing: 1px; color: #8A8D93">34 W · 16 L</div>
+  </div>
+
+  <!-- 3-col clip grid -->
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; margin-top: 2px">
+    <sc-for list="{{clips}}" as="c" hint-placeholder-count="9">
+      <div style="position: relative; aspect-ratio: 3 / 4; background: {{c.bg}}; display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; box-sizing: border-box; overflow: hidden">
+        <span style="position: absolute; top: 8px; left: 8px; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; background: {{c.badgeBg}}; color: {{c.badgeInk}}; border: {{c.badgeBorder}}; box-sizing: border-box">{{c.wl}}</span>
+        <svg style="position: absolute; top: 9px; right: 8px" width="16" height="16" viewBox="0 0 24 24" fill="#C9CBCF" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>
+        <span style="font-size: 24px; line-height: 1; font-weight: 900; font-stretch: 110%; letter-spacing: -0.5px">{{c.score}}</span>
+        <span style="margin-top: 3px; font-size: 11px; font-weight: 700; color: #C9CBCF">{{c.ex}} · {{c.who}}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ BOTTOM NAV (5 tabs) ============ -->
+<sc-if value="{{showNav}}" hint-placeholder-val="{{ true }}">
+<nav style="position: absolute; left: 0; right: 0; bottom: 0; height: 72px; background: #0B0B0C; border-top: 1px solid #1E2024; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 6px; box-sizing: border-box">
+  <button onClick="{{goHome}}" aria-label="Home" aria-current="{{nav.homeCur}}" style="border: none; background: transparent; color: {{nav.home}}; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="{{nav.homeFill}}" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
+  <button onClick="{{goLive}}" aria-label="Live now" aria-current="{{nav.liveCur}}" style="position: relative; border: none; background: transparent; color: {{nav.live}}; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/></svg><span class="gd-pulse" style="position: absolute; top: 18px; right: 22px; width: 8px; height: 8px; border-radius: 4px; background: #FF5A4E"></span></button>
+  <button onClick="{{newDuel}}" aria-label="Start a duel" style="border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><span style="width: 44px; height: 36px; border-radius: 12px; border: 2.5px solid #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></button>
+  <button onClick="{{goLeague}}" aria-label="League" aria-current="{{nav.leagueCur}}" style="border: none; background: transparent; color: {{nav.league}}; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></svg></button>
+  <button onClick="{{goProfile}}" aria-label="Profile" aria-current="{{nav.profileCur}}" style="border: none; background: transparent; display: flex; align-items: center; justify-content: center"><span style="width: 30px; height: 30px; border-radius: 15px; border: 2px solid {{nav.profile}}; box-sizing: border-box; padding: 2px; display: flex"><span style="flex: 1; border-radius: 50%; background: #2C2F34; color: #F4F4F2; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900">{{me.initial}}</span></span></button>
+</nav>
+</sc-if>
+
+<!-- ============ CHECK-IN TOAST ============ -->
+<sc-if value="{{showToast}}" hint-placeholder-val="{{ false }}">
+  <div class="gd-drop" style="position: absolute; left: 16px; right: 16px; bottom: 88px; padding: 14px 16px; border-radius: 18px; background: #F4F4F2; color: #0B0B0C; display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 800">
+    <span class="gd-pulse" style="width: 10px; height: 10px; border-radius: 5px; background: #FF5A4E; flex-shrink: 0"></span>You're live for 90 min. Gymmers on your level can challenge you.
+  </div>
+</sc-if>
+
+<!-- ============ REAL-TIME REQUEST BANNER ============ -->
+<sc-if value="{{showBanner}}" hint-placeholder-val="{{ false }}">
+  <div class="gd-drop" style="position: absolute; left: 10px; right: 10px; top: 10px; border-radius: 22px; background: #202226; border: 1px solid #3A3D43; box-shadow: 0 16px 40px rgba(0,0,0,0.6); display: flex; align-items: center">
+    <button onClick="{{openLiveReq}}" style="flex: 1; min-width: 0; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; gap: 12px; padding: 12px 4px 12px 14px; text-align: left">
+      <span style="position: relative; width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900">K<span style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); padding: 1px 4px; border-radius: 5px; background: #FF5A4E; color: #0B0B0C; font-size: 8px; font-weight: 900">LIVE</span></span>
+      <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+        <span style="font-size: 15px; font-weight: 800">Kenji in Tokyo wants a live duel</span>
+        <span style="font-size: 13px; color: #9A9DA3">18 pull-ups to beat · 10 min to answer</span>
+      </span>
+    </button>
+    <button onClick="{{dismissBanner}}" aria-label="Dismiss" style="width: 44px; height: 44px; margin-right: 6px; flex-shrink: 0; border: none; background: transparent; color: #9A9DA3; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+</sc-if>
+
+<!-- ============ LIVE CHALLENGE SHEET ============ -->
+<sc-if value="{{liveSheet}}" hint-placeholder-val="{{ false }}">
+<div onClick="{{closeLiveSheet}}" class="gd-fade" aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,0.72)"></div>
+<div class="gd-sheet" style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 26px; border-radius: 32px 32px 0 0; background: #16171A; border-top: 1px solid #2C2F34; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box">
+  <div style="display: flex; justify-content: center"><div style="width: 44px; height: 5px; border-radius: 3px; background: #3A3D43"></div></div>
+  <div style="display: flex; align-items: center; gap: 12px">
+    <span style="width: 52px; height: 52px; border-radius: 26px; border: 2px solid #F4F4F2; box-sizing: border-box; padding: 3px; display: flex"><span style="flex: 1; border-radius: 50%; background: #2C2F34; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900">{{target.initial}}</span></span>
+    <div style="flex: 1">
+      <div style="font-size: 22px; font-weight: 900; font-stretch: 112%">Live duel vs {{target.name}}</div>
+      <div style="font-size: 14px; color: #9A9DA3">{{target.city}} · {{target.time}} · {{target.minsIn}}m into a session</div>
+    </div>
+  </div>
+  <div style="font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">EXERCISE</div>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: -6px">
+    <sc-for list="{{liveExChips}}" as="c" hint-placeholder-count="6">
+      <button onClick="{{c.pick}}" aria-pressed="{{c.sel}}" style="height: 42px; padding: 0 14px; border-radius: 21px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.ink}}; font-size: 14px; font-weight: 800">{{c.name}}</button>
+    </sc-for>
+  </div>
+  <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 20px; background: #0B0B0C; border: 1px solid #2C2F34">
+    <button onClick="{{liveDec}}" aria-label="Decrease" style="width: 56px; height: 56px; border-radius: 16px; border: none; background: #1C1D21; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+    <div style="flex: 1; text-align: center"><div style="font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">YOUR SCORE TO BEAT</div><div style="font-size: 40px; line-height: 1.05; font-weight: 900; font-stretch: 112%">{{liveSend.num}} <span style="font-size: 16px; color: #9A9DA3">{{liveSend.unit}}</span></div></div>
+    <button onClick="{{liveInc}}" aria-label="Increase" style="width: 56px; height: 56px; border-radius: 16px; border: none; background: #1C1D21; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+  <button onClick="{{sendLive}}" style="height: 68px; border: none; border-radius: 22px; background: {{accent}}; color: #0B0B0C; font-size: 20px; font-weight: 900; font-stretch: 115%; display: flex; align-items: center; justify-content: center; gap: 10px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>SEND LIVE · 10 MIN</button>
+</div>
+</sc-if>
+
+<!-- ============ SIGNUP SHEET (at send) ============ -->
+<sc-if value="{{sheet}}" hint-placeholder-val="{{ false }}">
+<div class="gd-fade" style="position: absolute; inset: 0; background: rgba(0,0,0,0.72)"></div>
+<div class="gd-sheet" style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 28px; border-radius: 32px 32px 0 0; background: #16171A; border-top: 1px solid #2C2F34; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box">
+  <div style="display: flex; justify-content: center"><div style="width: 44px; height: 5px; border-radius: 3px; background: #3A3D43"></div></div>
+  <div style="display: flex; justify-content: space-between; align-items: flex-start">
+    <h2 style="margin: 6px 0 0; font-size: 32px; line-height: 1; font-weight: 900; font-stretch: 115%; letter-spacing: -0.5px">Lock in<br>your {{card.num}}.</h2>
+    <button onClick="{{closeSheet}}" aria-label="Close" style="width: 44px; height: 44px; margin-right: -8px; border: none; background: transparent; color: #9A9DA3; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <p style="margin: 0 0 4px; font-size: 16px; color: #9A9DA3">Your friend needs to know who they're up against.</p>
+  <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; letter-spacing: 1.2px; color: #9A9DA3">YOUR NAME
+    <input value="{{name}}" onChange="{{onName}}" placeholder="First name" autocomplete="given-name" style="height: 56px; border-radius: 16px; border: 1px solid #2C2F34; background: #0B0B0C; color: #F4F4F2; font-size: 18px; font-weight: 700; padding: 0 16px; box-sizing: border-box">
+  </label>
+  <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; letter-spacing: 1.2px; color: #9A9DA3">MOBILE
+    <span style="display: flex; gap: 8px">
+      <span style="height: 56px; padding: 0 14px; border-radius: 16px; border: 1px solid #2C2F34; display: flex; align-items: center; font-size: 18px; font-weight: 700; color: #F4F4F2">+91</span>
+      <input value="{{phone}}" onChange="{{onPhone}}" inputmode="numeric" placeholder="10-digit number" autocomplete="tel-national" style="flex: 1; min-width: 0; height: 56px; border-radius: 16px; border: 1px solid #2C2F34; background: #0B0B0C; color: #F4F4F2; font-size: 18px; font-weight: 700; padding: 0 16px; box-sizing: border-box">
+    </span>
+  </label>
+  <sc-if value="{{canSign}}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{signUp}}" style="margin-top: 6px; height: 68px; border: none; border-radius: 22px; background: {{accent}}; color: #0B0B0C; font-size: 20px; font-weight: 900; font-stretch: 115%">SEND CHALLENGE</button>
+  </sc-if>
+  <sc-if value="{{cantSign}}" hint-placeholder-val="{{ true }}">
+    <button disabled style="margin-top: 6px; height: 68px; border: none; border-radius: 22px; background: #24262B; color: #8A8D93; font-size: 20px; font-weight: 900; font-stretch: 115%">SEND CHALLENGE</button>
+  </sc-if>
+  <button onClick="{{signUpGoogle}}" style="height: 54px; border: 1px solid #2C2F34; border-radius: 18px; background: transparent; color: #F4F4F2; font-size: 16px; font-weight: 800">Continue with Google instead</button>
+  <p style="margin: 0; text-align: center; font-size: 12px; color: #8A8D93">We'll send a one-time code. No spam.</p>
+</div>
+</sc-if>
+
+<!-- ============ PROTOTYPE SCREEN JUMPER ============ -->
+<sc-if value="{{showJump}}" hint-placeholder-val="{{ true }}">
+  <button onClick="{{toggleJump}}" aria-label="Jump to screen" style="position: absolute; left: 0; top: 420px; width: 26px; height: 84px; border: 1px solid #2C2F34; border-left: none; border-radius: 0 12px 12px 0; background: rgba(28,29,33,0.9); color: #9A9DA3; display: flex; align-items: center; justify-content: center; padding: 0"><span style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 10px; font-weight: 800; letter-spacing: 1.5px">SCREENS</span></button>
+</sc-if>
+<sc-if value="{{jump}}" hint-placeholder-val="{{ false }}">
+  <div class="gd-fade gd-scroll" style="position: absolute; inset: 0; overflow-y: auto; background: rgba(5,5,6,0.95); padding: 20px; box-sizing: border-box; display: flex; flex-direction: column">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="font-size: 14px; font-weight: 800; letter-spacing: 1.5px; color: #9A9DA3">JUMP TO SCREEN</div>
+      <button onClick="{{toggleJump}}" aria-label="Close" style="width: 44px; height: 44px; border: none; background: transparent; color: #F4F4F2; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 5px">
+      <sc-for list="{{jumps}}" as="j" hint-placeholder-count="16">
+        <button onClick="{{j.go}}" style="height: 42px; flex-shrink: 0; border-radius: 12px; border: 1px solid #2C2F34; background: #121316; color: #F4F4F2; display: flex; align-items: center; gap: 12px; padding: 0 14px; font-size: 15px; font-weight: 700; text-align: left"><span style="width: 22px; font-size: 13px; font-weight: 800; color: #8A8D93">{{j.n}}</span>{{j.label}}</button>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#D7FF3A","options":["#D7FF3A","#FF6B2C","#5CE1FF","#F4F4F2"]},"streakAtRisk":{"editor":"boolean","default":true},"showJump":{"editor":"boolean","default":true},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    const n = Date.now();
+    this.state = {
+      screen: 'home', exId: null, score: 30, authed: true, name: '', phone: '',
+      sheet: false, jump: false, now: n, sentAt: n, streakSaved: false,
+      incoming: { from: 'Rahul', exId: 'pushups', score: 42, deadline: n + (47 * 3600 + 59 * 60 + 40) * 1000 },
+      rec: null, result: null,
+      live: false, liveAt: 0, bannerDone: false,
+      filter: 'world', liveSheet: false, target: null, liveEx: 'pullups', liveScore: 15, waitStart: 0,
+      days: [true, true, true, false, true, true, false],
+      slots: { morning: false, midday: false, evening: true, late: false },
+      pingMe: true, autoLive: true
+    };
+  }
+  componentDidMount() { this._t = setInterval(() => this.tick(), 200); }
+  componentWillUnmount() { clearInterval(this._t); }
+  exData() {
+    if (!this._ex) this._ex = {
+      pushups: { name: 'Push-ups', rule: 'Max reps in 60 sec', tag: '60 SEC', unit: 'PUSH-UPS · 60 SEC', unitShort: 'REPS', kind: 'timed', step: 1, big: 5, def: 30 },
+      squat: { name: 'Back squat', rule: 'Heaviest for 5 reps', tag: '5 REP MAX', unit: 'KG · BACK SQUAT × 5', unitShort: 'KG', kind: 'weight', step: 2.5, big: 10, def: 80 },
+      pullups: { name: 'Pull-ups', rule: 'Max reps, one set', tag: 'MAX REPS', unit: 'PULL-UPS · ONE SET', unitShort: 'REPS', kind: 'reps', step: 1, big: 5, def: 12 },
+      plank: { name: 'Plank', rule: 'Longest hold', tag: 'HOLD', unit: 'PLANK · LONGEST HOLD', unitShort: 'HELD', kind: 'hold', step: 5, big: 30, def: 90 },
+      deadlift: { name: 'Deadlift', rule: 'Heaviest for 3 reps', tag: '3 REP MAX', unit: 'KG · DEADLIFT × 3', unitShort: 'KG', kind: 'weight', step: 2.5, big: 10, def: 120 },
+      burpees: { name: 'Burpees', rule: 'Max reps in 60 sec', tag: '60 SEC', unit: 'BURPEES · 60 SEC', unitShort: 'REPS', kind: 'timed', step: 1, big: 5, def: 25 }
+    };
+    return this._ex;
+  }
+  peopleData() {
+    if (!this._pp) this._pp = [
+      { name: 'Kenji M', city: 'Tokyo', off: 9, activity: 'Pull day', tier: 'Iron', min0: 32, friend: false, level: true, gym: false },
+      { name: 'Meera K', city: 'Bengaluru', off: 5.5, activity: 'Legs', tier: 'Iron', min0: 18, friend: true, level: true, gym: true },
+      { name: 'Ravi S', city: 'Dubai', off: 4, activity: 'Push day', tier: 'Steel', min0: 44, friend: false, level: false, gym: false },
+      { name: 'Amara O', city: 'Lagos', off: 1, activity: 'Full body', tier: 'Iron', min0: 9, friend: false, level: true, gym: false },
+      { name: 'Rahul S', city: 'Bengaluru', off: 5.5, activity: 'Chest', tier: 'Iron', min0: 27, friend: true, level: true, gym: false },
+      { name: 'Lucas P', city: 'São Paulo', off: -3, activity: 'Deadlifts', tier: 'Titan', min0: 51, friend: false, level: false, gym: false },
+      { name: 'Zoya K', city: 'Mumbai', off: 5.5, activity: 'Core', tier: 'Iron', min0: 12, friend: true, level: true, gym: false },
+      { name: 'Jonas W', city: 'Berlin', off: 1, activity: 'Squats', tier: 'Iron', min0: 38, friend: false, level: true, gym: false }
+    ];
+    return this._pp;
+  }
+  pad(n) { return String(n).padStart(2, '0'); }
+  hms(ms) { const t = Math.max(0, Math.floor(ms / 1000)); return this.pad(Math.floor(t / 3600)) + ':' + this.pad(Math.floor((t % 3600) / 60)) + ':' + this.pad(t % 60); }
+  dh(ms) { const t = Math.max(0, Math.floor(ms / 1000)); return Math.floor(t / 86400) + 'd ' + this.pad(Math.floor((t % 86400) / 3600)) + 'h'; }
+  ms(sec) { const t = Math.max(0, Math.floor(sec)); return Math.floor(t / 60) + ':' + this.pad(t % 60); }
+  clock(now, off) {
+    const d = new Date(now + off * 3600000);
+    let h = d.getUTCHours(); const m = d.getUTCMinutes(); const ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12; return h + ':' + this.pad(m) + ' ' + ap;
+  }
+  num(exId, v) {
+    const e = this.exData()[exId];
+    if (e.kind === 'hold') return this.ms(v);
+    return (v % 1) ? v.toFixed(1) : String(v);
+  }
+  freshRec(inc) { return { running: false, started: false, count: 0, weight: inc.score, acc: 0, start: 0 }; }
+  elapsed(rec, now) { return rec.running ? rec.acc + (now - rec.start) / 1000 : rec.acc; }
+  tick() {
+    const s = this.state, now = Date.now();
+    const patch = { now };
+    if (s.rec && s.rec.running) {
+      const e = this.exData()[s.incoming.exId];
+      if (e.kind === 'timed' && this.elapsed(s.rec, now) >= 60) patch.rec = Object.assign({}, s.rec, { running: false, acc: 60 });
+    }
+    if (s.screen === 'waiting' && now - s.waitStart > 7000) {
+      const e = this.exData()[s.liveEx];
+      patch.screen = 'result';
+      patch.result = { my: s.liveScore, their: Math.max(0, Math.round((s.liveScore - e.step * 3) * 10) / 10), from: s.target.name.split(' ')[0], exId: s.liveEx, win: true };
+      patch.streakSaved = true;
+    }
+    this.setState(patch);
+  }
+  nextSunday(now) { const d = new Date(now); const add = (7 - d.getDay()) % 7; return new Date(d.getFullYear(), d.getMonth(), d.getDate() + add, 23, 59, 59).getTime(); }
+  weekNo(now) { const d = new Date(now); const start = new Date(d.getFullYear(), 0, 1); return Math.ceil(((d - start) / 86400000 + start.getDay() + 1) / 7); }
+
+  renderVals() {
+    const s = this.state, now = s.now, EX = this.exData();
+    const accent = this.props.accent ?? '#D7FF3A';
+    const atRiskProp = this.props.streakAtRisk ?? true;
+    const atRisk = atRiskProp && !s.streakSaved;
+    const set = (p) => this.setState(Object.assign({ jump: false }, p));
+    const go = (screen) => () => set({ screen, liveSheet: false, sheet: false });
+    const ex = s.exId ? EX[s.exId] : EX.pushups;
+    const myName = s.name.trim() || 'Arjun';
+    const myLocalOff = -new Date(now).getTimezoneOffset() / 60;
+
+    const tiles = Object.keys(EX).map((id) => {
+      const e = EX[id], sel = s.exId === id;
+      return { name: e.name, rule: e.rule, tag: e.tag, sel, border: sel ? '#F4F4F2' : '#2C2F34', bg: sel ? '#202226' : '#121316', pick: () => this.setState({ exId: id, score: e.def }) };
+    });
+    const bump = (d) => () => { const v = Math.max(0, Math.round((s.score + d) * 10) / 10); this.setState({ score: v }); };
+
+    const sentLeft = this.hms(s.sentAt + 48 * 3600000 - now);
+    const card = {
+      name: (s.name.trim() || (s.authed ? myName : 'YOU')).toUpperCase(),
+      num: this.num(s.exId || 'pushups', s.score), unit: ex.unit,
+      left: s.screen === 'sent' ? sentLeft : '48:00:00'
+    };
+
+    const ie = EX[s.incoming.exId];
+    const isLiveInc = !!s.incoming.live;
+    const inc = {
+      from: s.incoming.from, initial: s.incoming.from.charAt(0).toUpperCase(),
+      num: this.num(s.incoming.exId, s.incoming.score), unit: ie.unit, unitShort: ie.unitShort,
+      left: isLiveInc ? this.ms((s.incoming.deadline - now) / 1000) : this.hms(s.incoming.deadline - now),
+      live: isLiveInc,
+      sub: isLiveInc ? (s.incoming.city + ' · ' + this.clock(now, s.incoming.off) + ' there') : 'challenged you',
+      timerLabel: isLiveInc ? 'LIVE WINDOW' : 'TIME LEFT',
+      timerBorder: isLiveInc ? '2px solid #FF5A4E' : '1px solid #2C2F34',
+      note: isLiveInc ? 'They are mid-session right now. Answer while you are both warm.' : 'One take. Film the whole set.',
+      cta: isLiveInc ? 'ACCEPT · RECORD NOW' : 'RECORD MY ATTEMPT'
+    };
+
+    const rec = s.rec || this.freshRec(s.incoming);
+    const el = this.elapsed(rec, now);
+    const target = s.incoming.score;
+    let myVal = rec.count;
+    if (ie.kind === 'weight') myVal = rec.weight;
+    if (ie.kind === 'hold') myVal = Math.floor(el);
+    const ahead = myVal > target;
+    const need = ie.kind === 'weight' ? (target + ie.step) : (target + 1);
+    const live = rec.running, ready = !rec.started, review = rec.started && !rec.running;
+    const isCount = ie.kind === 'timed' || ie.kind === 'reps';
+    const rv = {
+      ready, live, review, isCount, isWeight: ie.kind === 'weight',
+      tapMode: live && isCount, viewMode: !(live && isCount),
+      showBig: (live && !isCount && ie.kind === 'hold') || review,
+      time: ie.kind === 'timed' && !review ? this.ms(Math.ceil(60 - el)) : this.ms(el),
+      main: this.num(s.incoming.exId, myVal),
+      weight: this.num(s.incoming.exId, rec.weight),
+      status: ahead ? 'BEATING ' + s.incoming.from.toUpperCase() : 'NEED ' + this.num(s.incoming.exId, need),
+      statusColor: ahead ? '#F4F4F2' : '#9A9DA3'
+    };
+    const setRec = (p) => this.setState({ rec: Object.assign({}, rec, p) });
+
+    const r = s.result || { my: 47, their: 42, from: 'Rahul', exId: 'pushups', win: true };
+    const gap = Math.round(Math.abs(r.their - r.my) * 10) / 10;
+    const gapTxt = EX[r.exId].kind === 'hold' ? this.ms(gap) : this.num(r.exId, gap) + (EX[r.exId].kind === 'weight' ? ' kg' : '');
+    const res = {
+      myNum: this.num(r.exId, r.my), theirNum: this.num(r.exId, r.their),
+      from: r.from, fromUpper: r.from.toUpperCase(),
+      gapLine: r.my === r.their ? 'Dead level. Ties go to the challenger.' : 'Short by ' + gapTxt + '. Run it back.',
+      streakLine: atRiskProp ? 'Streak saved · 7 weeks' : '7 week streak'
+    };
+    const rays = Array.from({ length: 12 }, (_, i) => ({ deg: i * 30, color: i % 2 ? '#6E7177' : '#F4F4F2' }));
+
+    // live people + targets
+    const P = this.peopleData();
+    const elapsedMin = Math.floor((now - (this._mount || (this._mount = now))) / 60000);
+    const toTarget = (p) => ({ name: p.name, initial: p.name.charAt(0), city: p.city, off: p.off, minsIn: p.min0 + elapsedMin });
+    const openLive = (p) => () => set({ liveSheet: true, target: toTarget(p), liveEx: 'pullups', liveScore: 15 });
+    const filt = { world: () => true, friends: (p) => p.friend, level: (p) => p.level, gym: (p) => p.gym };
+    const livePeople = P.filter(filt[s.filter]).map((p) => ({
+      name: p.name, initial: p.name.charAt(0), city: p.city, time: this.clock(now, p.off),
+      minsIn: p.min0 + elapsedMin, activity: p.activity, tier: p.tier, open: openLive(p)
+    }));
+    const filters = [['world', 'Worldwide'], ['friends', 'Friends'], ['level', 'My level'], ['gym', 'My gym']].map(([k, label]) => {
+      const sel = s.filter === k;
+      return { label, sel, pick: () => this.setState({ filter: k }), bg: sel ? '#F4F4F2' : 'transparent', ink: sel ? '#0B0B0C' : '#F4F4F2', border: sel ? '#F4F4F2' : '#2C2F34' };
+    });
+    const tgt = s.target || toTarget(P[0]);
+    const targetV = { name: tgt.name.split(' ')[0], initial: tgt.initial, city: tgt.city, time: this.clock(now, tgt.off), minsIn: tgt.minsIn };
+    const le = EX[s.liveEx];
+    const liveExChips = Object.keys(EX).map((id) => {
+      const sel = s.liveEx === id;
+      return { name: EX[id].name, sel, pick: () => this.setState({ liveEx: id, liveScore: EX[id].def }), bg: sel ? '#F4F4F2' : 'transparent', ink: sel ? '#0B0B0C' : '#F4F4F2', border: sel ? '#F4F4F2' : '#2C2F34' };
+    });
+    const liveSend = { num: this.num(s.liveEx, s.liveScore), unit: le.unitShort };
+    const wEl = now - s.waitStart;
+    const wait = wEl < 2600
+      ? { label: 'SENT · WAITING', title: 'Waiting on ' + targetV.name, clock: this.ms(600 - wEl / 1000) }
+      : { label: 'ACCEPTED', title: targetV.name + ' is recording', clock: this.ms(600 - wEl / 1000) };
+
+    // stories (friends)
+    const storyFriends = [P[1], P[4], P[6], { name: 'Kavya', off: 5.5, city: 'Bengaluru', min0: 0, offline: true }, { name: 'Sid', offline: true }, { name: 'Karan', offline: true }];
+    const stories = storyFriends.map((p) => {
+      const on = !p.offline;
+      return {
+        name: p.name.split(' ')[0], initial: p.name.charAt(0), live: on,
+        ring: on ? '3px solid #F4F4F2' : '2px solid #2C2F34',
+        ink: on ? '#F4F4F2' : '#8A8D93', labelInk: on ? '#F4F4F2' : '#8A8D93',
+        open: on ? openLive(p) : () => set({ screen: 'ob1', authed: true, exId: null })
+      };
+    });
+
+    const openDuel = (from, exId, score, hours) => () => {
+      const inc2 = { from, exId, score, deadline: Date.now() + hours * 3600000 };
+      set({ screen: 'accept', incoming: inc2, rec: this.freshRec(inc2) });
+    };
+    const yourMove = [
+      { from: 'Rahul', initial: 'R', ex: 'Push-ups · 60 sec', num: '42', unit: 'PUSH-UPS · 60 SEC', left: '31h', leftColor: '#9A9DA3', side: '4 friends watching', open: openDuel('Rahul', 'pushups', 42, 31) },
+      { from: 'Kavya', initial: 'K', ex: 'Plank · longest hold', num: '2:15', unit: 'PLANK · LONGEST HOLD', left: '5h', leftColor: '#FF7A70', side: 'Expires tonight', open: openDuel('Kavya', 'plank', 135, 5) },
+      { from: 'Sid', initial: 'S', ex: 'Back squat · 5 reps', num: '100', unit: 'KG · BACK SQUAT × 5', left: '44h', leftColor: '#9A9DA3', side: 'Your PR is 95', open: openDuel('Sid', 'squat', 100, 44) }
+    ];
+    const theirMove = [
+      { to: 'Meera', initial: 'M', ex: 'Burpees · your 28', left: '40h' },
+      { to: 'Zoya', initial: 'Z', ex: 'Deadlift · your 140 kg', left: '12h' }
+    ];
+
+    const people = [['Vikram T', 412], ['Ananya R', 388], ['Rahul S', 361], ['Zoya K', 340], ['Karan M', 322], ['ME', 310], ['Meera K', 298], ['Sid R', 287], ['Ishaan P', 270], ['Tanvi D', 255], ['Rohan B', 241], ['Priya N', 233], ['Aditya V', 219], ['Neha G', 204], ['Faiz A', 190], ['Sneha J', 172], ['Dev C', 160], ['Pooja L', 141], ['Yash H', 120], ['Nikhil O', 96]];
+    const board = people.map((p, i) => {
+      const me = p[0] === 'ME', rank = i + 1;
+      const nm = me ? myName + ' (you)' : p[0];
+      return {
+        rank, name: nm, initial: nm.charAt(0), lp: p[1] + ' LP',
+        bg: me ? '#202226' : 'transparent', border: me ? '2px solid #F4F4F2' : '2px solid transparent',
+        weight: me ? 900 : 600,
+        rankColor: rank <= 5 ? '#F4F4F2' : (rank >= 16 ? '#FF5A4E' : '#8A8D93'),
+        promoteFoot: rank === 5, demoteHead: rank === 16
+      };
+    });
+
+    const prs = [
+      { num: '47', unit: 'REPS', name: 'Push-ups' },
+      { num: '100', unit: 'KG', name: 'Squat' },
+      { num: '18', unit: 'REPS', name: 'Pull-ups' },
+      { num: '3:20', unit: 'HOLD', name: 'Plank' },
+      { num: '140', unit: 'KG', name: 'Deadlift' }
+    ];
+    const clipsRaw = [
+      [true, '47–42', 'Push-ups', 'Rahul'], [false, '95–100', 'Squat', 'Sid'], [true, '31–28', 'Burpees', 'Meera'],
+      [true, '2:40', 'Plank', 'Kavya'], [false, '14–17', 'Pull-ups', 'Zoya'], [true, '140–135', 'Deadlift', 'Karan'],
+      [true, '22–19', 'Pull-ups', 'Kenji'], [true, '52–48', 'Push-ups', 'Amara'], [false, '24–29', 'Burpees', 'Ravi']
+    ];
+    const shades = ['#18191C', '#1C1D21', '#141518'];
+    const clips = clipsRaw.map((c, i) => ({
+      wl: c[0] ? 'W' : 'L', score: c[1], ex: c[2], who: c[3], bg: shades[i % 3],
+      badgeBg: c[0] ? '#F4F4F2' : 'transparent', badgeInk: c[0] ? '#0B0B0C' : '#FF5A4E', badgeBorder: c[0] ? 'none' : '2px solid #FF5A4E'
+    }));
+
+    // gym hours
+    const dayL = ['M', 'T', 'W', 'T', 'F', 'S', 'S'], dayF = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const days = dayL.map((l, i) => {
+      const on = s.days[i];
+      return { label: l, full: dayF[i], on, bg: on ? '#F4F4F2' : 'transparent', ink: on ? '#0B0B0C' : '#9A9DA3', border: on ? '#F4F4F2' : '#2C2F34',
+        toggle: () => { const d = s.days.slice(); d[i] = !d[i]; this.setState({ days: d }); } };
+    });
+    const slotDefs = [['morning', 'Morning', '6 – 9 AM'], ['midday', 'Midday', '12 – 3 PM'], ['evening', 'Evening', '6 – 9 PM'], ['late', 'Late', '9 PM – 12 AM']];
+    const slots = slotDefs.map(([k, label, range]) => {
+      const on = s.slots[k];
+      return { label, range, on, bg: on ? '#202226' : '#121316', border: on ? '#F4F4F2' : '#2C2F34',
+        toggle: () => this.setState({ slots: Object.assign({}, s.slots, { [k]: !on }) }) };
+    });
+    const sw = (on) => ({ track: on ? '#F4F4F2' : '#2C2F34', knob: on ? '#0B0B0C' : '#8A8D93', justify: on ? 'flex-end' : 'flex-start' });
+    const toggles = [
+      Object.assign({ label: 'Live duel requests', sub: 'Get pinged when matched gymmers are in too', on: s.pingMe, flip: () => this.setState({ pingMe: !s.pingMe }) }, sw(s.pingMe)),
+      Object.assign({ label: 'Auto check-in', sub: 'Go live on your usual days and times', on: s.autoLive, flip: () => this.setState({ autoLive: !s.autoLive }) }, sw(s.autoLive))
+    ];
+    const onDays = dayF.filter((_, i) => s.days[i]);
+    const onSlots = slotDefs.filter(([k]) => s.slots[k]).map((d) => d[2]);
+    const hoursSummary = (onDays.length ? onDays.join(' ') : 'No days set') + (onSlots.length ? ' · ' + onSlots.join(', ') : '');
+
+    const scr = s.screen;
+    const tabColor = (k) => scr === k ? '#F4F4F2' : '#8A8D93';
+    const resultWin = { my: 47, their: 42, from: 'Rahul', exId: 'pushups', win: true };
+    const resultLoss = { my: 37, their: 42, from: 'Rahul', exId: 'pushups', win: false };
+    const kenji = { from: 'Kenji', exId: 'pullups', score: 18, live: true, city: 'Tokyo', off: 9 };
+    const liveReqGo = () => { const inc2 = Object.assign({}, kenji, { deadline: Date.now() + 600000 }); set({ screen: 'accept', incoming: inc2, rec: this.freshRec(inc2), bannerDone: true, liveSheet: false }); };
+    const reset = { sheet: false, liveSheet: false };
+    const jumpsRaw = [
+      ['Onboarding · pick exercise', { screen: 'ob1', authed: false }],
+      ['Onboarding · log set', { screen: 'ob2', exId: s.exId || 'pushups' }],
+      ['Onboarding · preview card', { screen: 'ob3', exId: s.exId || 'pushups' }],
+      ['Signup at send', { screen: 'ob3', exId: s.exId || 'pushups', authed: false, sheet: true }],
+      ['Challenge sent', { screen: 'sent', exId: s.exId || 'pushups', sentAt: Date.now() }],
+      ['Accept challenge (friend)', { screen: 'accept', incoming: { from: 'Rahul', exId: 'pushups', score: 42, deadline: Date.now() + 172000000 } }],
+      ['Record proof', { screen: 'record', rec: this.freshRec(s.incoming) }],
+      ['Result · win', { screen: 'result', result: resultWin }],
+      ['Result · loss', { screen: 'result', result: resultLoss }],
+      ['Home · stories + duels', { screen: 'home', authed: true }],
+      ['Live now · worldwide', { screen: 'live', authed: true }],
+      ['Live duel sheet', { screen: 'live', authed: true, liveSheet: true, target: toTarget(P[0]) }],
+      ['Live request banner', { screen: 'home', authed: true, live: true, liveAt: Date.now() - 4000, bannerDone: false }],
+      ['League', { screen: 'league', authed: true }],
+      ['Profile', { screen: 'profile', authed: true }],
+      ['Gym hours', { screen: 'hours', authed: true }]
+    ];
+    const jumps = jumpsRaw.map((j, i) => ({ n: i + 1, label: j[0], go: () => set(Object.assign({}, reset, j[1])) }));
+
+    const phoneDigits = s.phone.replace(/\D/g, '');
+    const canSign = s.name.trim().length > 0 && phoneDigits.length >= 10;
+    const showNav = scr === 'home' || scr === 'live' || scr === 'league' || scr === 'profile';
+    const liveMin = s.live ? Math.max(0, 90 - Math.floor((now - s.liveAt) / 60000)) : 0;
+
+    return {
+      accent,
+      is: {
+        ob1: scr === 'ob1', ob2: scr === 'ob2', ob3: scr === 'ob3', sent: scr === 'sent',
+        accept: scr === 'accept', record: scr === 'record',
+        win: scr === 'result' && r.win, loss: scr === 'result' && !r.win,
+        home: scr === 'home', live: scr === 'live', waiting: scr === 'waiting', hours: scr === 'hours',
+        league: scr === 'league', profile: scr === 'profile'
+      },
+      authed: s.authed, notAuthed: !s.authed,
+      tiles, exPicked: !!s.exId, exNotPicked: !s.exId,
+      ex, ob2Num: this.num(s.exId || 'pushups', s.score), ob2Unit: ex.unitShort,
+      bigStep: String(ex.big),
+      dec1: bump(-ex.step), inc1: bump(ex.step), decBig: bump(-ex.big), incBig: bump(ex.big),
+      toOb1: () => set({ screen: s.authed ? 'home' : 'ob1' }),
+      toOb2: go('ob2'), toOb3: go('ob3'),
+      card,
+      send: () => s.authed ? set({ screen: 'sent', sentAt: Date.now() }) : set({ sheet: true }),
+      sheet: s.sheet, closeSheet: () => set({ sheet: false }),
+      name: s.name, phone: s.phone,
+      onName: (e) => this.setState({ name: e.target.value }),
+      onPhone: (e) => this.setState({ phone: e.target.value.replace(/[^\d ]/g, '').slice(0, 12) }),
+      canSign, cantSign: !canSign,
+      signUp: () => set({ authed: true, sheet: false, screen: 'sent', sentAt: Date.now() }),
+      signUpGoogle: () => set({ authed: true, sheet: false, screen: 'sent', sentAt: Date.now(), name: s.name || 'Arjun' }),
+      previewAsFriend: (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        const inc2 = { from: myName, exId: s.exId || 'pushups', score: s.score, deadline: s.sentAt + 48 * 3600000 };
+        set({ screen: 'accept', incoming: inc2, rec: this.freshRec(inc2) });
+      },
+      inc,
+      toRecord: () => set({ screen: 'record', rec: this.freshRec(s.incoming) }),
+      toAccept: () => set({ screen: 'accept', rec: this.freshRec(s.incoming) }),
+      rv,
+      recStart: () => setRec({ running: true, started: true, start: Date.now(), acc: 0, count: ie.kind === 'weight' ? 0 : rec.count }),
+      recStop: () => setRec({ running: false, acc: this.elapsed(rec, Date.now()) }),
+      tapRep: () => setRec({ count: rec.count + 1 }),
+      untapRep: () => setRec({ count: Math.max(0, rec.count - 1) }),
+      wInc: () => setRec({ weight: Math.round((rec.weight + ie.step) * 10) / 10 }),
+      wDec: () => setRec({ weight: Math.max(0, Math.round((rec.weight - ie.step) * 10) / 10) }),
+      retake: () => this.setState({ rec: this.freshRec(s.incoming) }),
+      submit: () => {
+        const result = { my: myVal, their: target, from: s.incoming.from, exId: s.incoming.exId, win: myVal > target };
+        set({ screen: 'result', result, streakSaved: result.win ? true : s.streakSaved });
+      },
+      res, rays,
+      rematch: () => set({ screen: 'ob2', authed: true, exId: r.exId, score: r.win ? r.my : r.their + EX[r.exId].step }),
+      challengeOther: () => set({ screen: 'ob3', authed: true, exId: r.exId, score: r.my }),
+      atRisk, safe: !atRisk, streakSafeNum: (s.streakSaved && atRiskProp) ? '7' : '6',
+      weeks: [1, 2, 3, 4, 5, 6].map((n) => ({ n })),
+      streakLeft: this.dh(this.nextSunday(now) - now),
+      me: { name: myName, initial: myName.charAt(0).toUpperCase(), handle: myName.toLowerCase().replace(/\s+/g, '') + '.lifts' },
+      newDuel: () => set({ screen: 'ob1', authed: true, exId: null, liveSheet: false }),
+      yourMove, theirMove, yourMoveCount: String(yourMove.length), theirMoveCount: String(theirMove.length),
+      stories,
+      live: s.live, notLive: !s.live,
+      meRing: s.live ? '3px solid #F4F4F2' : '2px solid #2C2F34',
+      meStoryLabel: s.live ? 'You · live' : 'Check in',
+      checkLabel: s.live ? 'Check out' : 'Check in now',
+      toggleLive: () => s.live ? this.setState({ live: false }) : this.setState({ live: true, liveAt: Date.now(), bannerDone: false }),
+      liveFor: liveMin + ' min left',
+      showToast: s.live && showNav && now - s.liveAt < 2800,
+      showBanner: s.live && showNav && !s.bannerDone && !s.liveSheet && now - s.liveAt > 3200,
+      reqBadge: s.live && !s.bannerDone,
+      openLiveReq: liveReqGo,
+      dismissBanner: () => this.setState({ bannerDone: true }),
+      liveCount: (1284 + (Math.floor(now / 7000) % 9)).toLocaleString('en-IN'),
+      myLocalTime: 'Your time ' + this.clock(now, myLocalOff),
+      filters, livePeople,
+      liveSheet: s.liveSheet, closeLiveSheet: () => this.setState({ liveSheet: false }),
+      target: targetV, liveExChips, liveSend,
+      liveDec: () => this.setState({ liveScore: Math.max(0, Math.round((s.liveScore - le.step) * 10) / 10) }),
+      liveInc: () => this.setState({ liveScore: Math.round((s.liveScore + le.step) * 10) / 10 }),
+      sendLive: () => set({ liveSheet: false, screen: 'waiting', waitStart: Date.now() }),
+      wait,
+      days, slots, toggles, hoursSummary,
+      goHours: go('hours'),
+      saveHours: () => set({ screen: 'profile' }),
+      weekNo: String(this.weekNo(now)), leagueLeft: this.dh(this.nextSunday(now) - now), board,
+      prs, clips,
+      showNav,
+      nav: {
+        home: tabColor('home'), live: tabColor('live'), league: tabColor('league'), profile: tabColor('profile'),
+        homeFill: scr === 'home' ? '#F4F4F2' : 'none',
+        homeCur: scr === 'home' ? 'page' : 'false', liveCur: scr === 'live' ? 'page' : 'false',
+        leagueCur: scr === 'league' ? 'page' : 'false', profileCur: scr === 'profile' ? 'page' : 'false'
+      },
+      goHome: () => set({ screen: 'home', authed: true, sheet: false, liveSheet: false }),
+      goLive: go('live'), goLeague: go('league'), goProfile: go('profile'),
+      showJump: this.props.showJump ?? true,
+      jump: s.jump, toggleJump: () => this.setState({ jump: !s.jump }),
+      jumps
+    };
+  }
+}
+</script>
+</body>
+</html>
